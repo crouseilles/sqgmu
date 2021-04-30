@@ -34,7 +34,7 @@ adv1(:,PX(2)+1)=0;
 clear gradb
 
 %% Laplacian diffusion term (from the stochastic material derivative)
-adv2 = - model.advection.coef_diff * k2 .* fft_b ;
+adv2 = 0;%- model.advection.coef_diff * k2 .* fft_b ;
 
 %% Hyperviscosity
 

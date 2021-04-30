@@ -11,10 +11,10 @@ stochastic_simulation = false ;
 % or SQG_MU model (stochastic_simulation=true)
 
 % Duration of the simulation (in seconds)
-advection_duration = 3600*24*20; % 20 days
+advection_duration = 3600*24*10; % 20 days
 
 % Number of realizations in the ensemble
-N_ech=10;
+N_ech=1;
 % ( N_ech=200 enables moments to converge when the parameter resolution is
 %   set to 128 )
 % ( N_ech is automatically set to 1 in deterministic simulations )
@@ -31,7 +31,7 @@ type_data = 'Vortices';
 %   the variable slop_b_ini (default value  = -5/3)
 
 % Resolution
-resolution = 128;
+resolution = 64;
 % The number of grid point is resolution^2
 % It has to be an even integer
 
@@ -41,18 +41,13 @@ resolution = 128;
 plot_moments = true;
 
 % Variance tensor a_H
-if stochastic_simulation
-    k_c = 1/(3e2); % 1/(300 meters)
-    % a_H is calculated latter in the code using 
-    % a_H = 2 * f_0 / k_c^2
-    % where f_0 is the Corilis frequency
-else
+
     % If the simulation is deterministic, a_H = 0 and only one simulation
     % is performed
     k_c = inf; % And then a_H = 0
     N_ech=1;
     plot_moments = false; 
-end
+
 
 % Spectrum slope of sigma dBt
 slope_sigma = - 5/3; 

@@ -1,7 +1,7 @@
 function [sigma_on_sq_dt,f_sigma,a0_on_dt,spectrum_sigma] = fct_sigma_spectrum(model,ft_w,ft2)
 % - sigma_on_sq_dt is the Fourier transform of the kernel \tilde sigma up to a multiplicative
 % constant
-% - f_sigma is the Fourier transform of the associted streamfunction
+% - f_sigma is the Fourier transform of the associated streamfunction
 % - a0_on_dt measures the total energy of the field and is generally used to
 % set the muliplicative constant
 % - spectrum_sigma is the spectrum

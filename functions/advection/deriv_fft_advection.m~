@@ -11,7 +11,7 @@ ky=model.grid.k.ky;
 k2=model.grid.k.k2;
 
 %% Advection term
-%%%%%%%%%%%%%%%%%
+
 % Gradient in Fourier space
 adv1x = - 1i * kx .* fft_b;
 adv1y = - 1i * ky .* fft_b;
@@ -34,7 +34,7 @@ clear gradb
 
 
 %% Hyperviscosity
-%%%%%%%%%%%%%%%%%
+
 % Norm of wave vector
 k2=model.grid.k_HV.k2;
 
@@ -42,6 +42,6 @@ k2=model.grid.k_HV.k2;
 adv4 = - model.advection.HV.val * k2 .^ (model.advection.HV.order/2) .* fft_b;
 
 %% Summing terms
-d_fft_b_adv=adv1+0*adv4; 
-clear adv1 adv4
+d_fft_b_adv=adv1+adv4; 
+clear adv1 adv2 adv4
 

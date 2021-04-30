@@ -27,9 +27,6 @@ model.grid.y = model.grid.dX(2)*(0:model.grid.MX(2)-1);
 % Grid in Fourier space
 model = init_grid_k (model);
 
-% Ensemble size
-%N_ech=model.advection.N_ech;
-
 %% Initialisation of the spatial fields
 
 % Initial large-scale velocity  (NC : solve "Poisson" equation to get w from buoy)
@@ -38,12 +35,6 @@ w=real(ifft2(fft_w));
 
 % Create several identical realizations of the intial buoyancy
 fft_buoy_part = repmat(fft_buoy_part(:,:,1),[1 1 1 model.advection.N_ech]);
-
-%% Choice of the variance tensor a
-% Variance tensor
-model.sigma.a0 = 0; %NC kc = inf ==> 2 * model.physical_constant.f0 / model.sigma.k_c^2   =  0;  
-% Diffusion coefficient
-%model.advection.coef_diff = 1/2 * model.sigma.a0;
 
 %% Hyperviscosity
 
@@ -65,52 +56,25 @@ model.advection.HV.val= ...
     (mean(model.grid.dX)/pi)^model.advection.HV.order;
 
 %% Choice of time step : CFL
-
-% CFL of the diffusion (or CFL of the white noise advection)
-dX2=(model.grid.dX /pi).^2;
-bound1=2/model.sigma.a0*prod(dX2)/sum(dX2);
-
 % CFL of the (large-scale) advection
 dX=permute(model.grid.dX,[1 3 2]);
-bound2=sum(bsxfun(@times,abs(w),pi./dX),3);
-bound2=max(bound2(:));
-bound2=1/bound2/4;
+bound1=sum(bsxfun(@times,abs(w),pi./dX),3);
+bound1=max(bound1(:));
+bound1=1/bound1/4;
 
 % CFL of the hyperviscosity
-bound3=1/model.advection.HV.val*(prod(dX2)/sum(dX2)) ^ ...
+dX2=(model.grid.dX /pi).^2;
+bound2=1/model.advection.HV.val*(prod(dX2)/sum(dX2)) ^ ...
     (model.advection.HV.order/2);
 clear dX dX2
 
 % Minimum of the CFL
-dt = min([bound1 bound2 bound3]);
-clear bound1 bound2 bound3
-if ~ isinf(model.sigma.k_c)
-    dt=dt/2;
-    % Further constraint on dt due to the use of a (simple) Euler scheme 
-    % for the SPDE
-end
+dt = min([bound1 bound2]); 
+clear  bound1 bound2
+
 model.advection.dt_adv = dt;
 
-%% Fourier transform of the kernel \tilde sigma
-if ~isinf(model.sigma.k_c)
-    % Fourier transform of the kernel \tilde sigma up to a multiplicative
-    % constant
-    [sigma_on_sq_dt, ~, missed_var_small_scale_spectrum ] ...
-        = fct_sigma_spectrum(model,fft_w);
-    % sigma_on_sq_dt will be used to simulate sigma d B_t
-    % missed_var_small_scale_spectrum will be used to set the mulitplicative
-    % constant
-    
-    % Muliplicative constant of the kernel \tilde sigma
-    model.sigma.a0_on_dt = model.sigma.a0 / dt;
-    sigma_on_sq_dt = sqrt(2*model.sigma.a0_on_dt/missed_var_small_scale_spectrum) ...
-        * sigma_on_sq_dt;
-    % the factor d=2 is for the dimension d of the space R^d
-    % the variance of sigma_dBt/dt is tr(a)/dt = 2 a0 /dt
-    clear missed_var_small_scale_spectrum
-else
-    sigma_on_sq_dt = 0;
-end
+sigma_on_sq_dt = 0;
 
 %% Loop on time
 
@@ -125,13 +89,10 @@ fprintf(['The initial condition is ' model.type_data ' \n'])
 fprintf(['1/k_c is equal to ' num2str(1/model.sigma.k_c) ' m \n'])
 fprintf(['Time step : ' num2str(dt) ' seconds \n']);
 fprintf(['Time of advection : ' num2str(N_t*dt/3600/24) ' days \n']);
-%fprintf(['Ensemble size : ' num2str(N_ech) ' realizations \n']);
 
 for t=1:N_t
     %% Time-uncorrelated velocity (isotropic and homogeneous in space)
-    if isinf(model.sigma.k_c) % Deterministic case
-        sigma_dBt_dt = 0;    
-    end
+    sigma_dBt_dt = 0;    
     
     %% Time-correlated velocity : solve "Poisson" to get w from buoy 
     fft_w = SQG_large_UQ(model, fft_buoy_part);
@@ -142,28 +103,8 @@ for t=1:N_t
     % Runge-Kutta 4 scheme
     fft_buoy_part = RK4_fft_advection(model,fft_buoy_part, w);
     
-    %% Discard particles which have blown up
-%     iii = isnan(fft_buoy_part) | isinf(abs(fft_buoy_part));
-%     if any(iii(:))
-%         iii=any(any(any(iii,3),2),1);
-%         if all(iii(:))
-%             error('the simulation has blown up');
-%         end
-%         nb_dead_pcl = sum(iii);
-%         warning([ num2str(nb_dead_pcl) ' particle(s) on ' num2str(N_ech) ...
-%             ' have(s) blown up and' ...
-%             ' are(is) resampled uniformly on the set of the others particles']);
-%         N_ech_temp = N_ech - nb_dead_pcl;
-%         fft_buoy_part(:,:,:,iii)=[];
-%         iii_sample = randi(N_ech_temp,nb_dead_pcl,1);
-%         for k=1:nb_dead_pcl
-%             fft_buoy_part(:,:,:,end+1) = fft_buoy_part(:,:,:,iii_sample(k));
-%         end
-%     end
-%     clear iii
-    
     %% Plots and save
-    tt = floor(t *dt/ (3600*24)); % Number of days
+    tt = floor(t*dt/(3600*24)); % Number of days
     if tt > tt_last
         tt_last = tt;
         fprintf([ num2str(t*dt/(24*3600)) ' days of advection \n'])
@@ -173,8 +114,8 @@ for t=1:N_t
         fct_plot(model,fft_buoy_part,day)
         
         % Save files
-        save( [model.folder.folder_simu '/files/' day '.mat'], ...
-            'model','t','fft_buoy_part','w','sigma_dBt_dt', ...
-            'sigma_on_sq_dt');
+        %save( [model.folder.folder_simu '/files/' day '.mat'], ...
+        %    'model','t','fft_buoy_part','w','sigma_dBt_dt', ...
+        %    'sigma_on_sq_dt');
     end
 end

@@ -5,13 +5,13 @@ init;
 
 %% Main parameters to choose
 
-% Deterministic or random model
+% Deterministic model
 stochastic_simulation = false ;
 % Usual SQG model (stochastic_simulation=false)
-% or SQG_MU model (stochastic_simulation=true)
+
 
 % Duration of the simulation (in seconds)
-advection_duration = 3600*24*10; % 20 days
+advection_duration = 3600*24*20; % 20 days
 
 % Number of realizations in the ensemble
 N_ech=1;
@@ -31,23 +31,16 @@ type_data = 'Vortices';
 %   the variable slop_b_ini (default value  = -5/3)
 
 % Resolution
-resolution = 64;
+resolution = 32;
 % The number of grid point is resolution^2
 % It has to be an even integer
 
 %% Optional parameters
 
-% Choose to plot one-point one-time moments each day
-plot_moments = true;
-
-% Variance tensor a_H
-
-    % If the simulation is deterministic, a_H = 0 and only one simulation
-    % is performed
-    k_c = inf; % And then a_H = 0
-    N_ech=1;
-    plot_moments = false; 
-
+% deterministic simulation ==> a_H = 0 and only one simulation is performed
+k_c = inf; % And then a_H = 0
+N_ech=1;
+plot_moments = false;
 
 % Spectrum slope of sigma dBt
 slope_sigma = - 5/3; 
@@ -64,9 +57,6 @@ model = fct_physical_param();
 % Gather parameters in the structure model
 model.sigma.slope_sigma = slope_sigma;
 model.sigma.kappamin_on_kappamax = kappamin_on_kappamax;
-if strcmp(type_data,'Spectrum')
-    model.slope_b_ini = slope_b_ini;
-end
 model.type_data=type_data;
 model.advection.N_ech=N_ech;
 model.sigma.k_c = k_c;

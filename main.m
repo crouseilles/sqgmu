@@ -5,11 +5,8 @@
 clear all;close all;clc;
 dbstop if error;% mode debug
 % Paths
-fct = genpath([ pwd '/advection' ]);
 addpath(pwd)
-addpath(fct)
 % Cleaning
-clear fct
 home;
 
 %% Main parameters to choose

@@ -25,7 +25,8 @@ fprintf(['Final time: ' num2str(N_t*model.advection.dt_adv/3600/24) ' days \n'])
 %% Loop on time
 for t=1:N_t
     %% solve "Poisson" to get w from buoy 
-    fft_w = SQG_large_UQ(model, fft_buoy_part);w=real(ifft2(fft_w));            
+    fft_w = SQG_large_UQ(model, fft_buoy_part);
+    w = real(ifft2(fft_w));            
     %% Runge-Kutta 4 scheme
     fft_buoy_part = RK4_fft_advection(model,fft_buoy_part, w);    
     %% Plots and save

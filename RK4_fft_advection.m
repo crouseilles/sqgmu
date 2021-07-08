@@ -1,7 +1,7 @@
 function fft_b_adv = RK4_fft_advection(model, fft_b, w)
 % Time integration of the advection equation of b 
 % by 4th order Runge-Kutta method with the speed w
-%
+
 
 dt=model.advection.dt_adv;
 k1 = deriv_fft_advection(model, fft_b, w);

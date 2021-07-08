@@ -1,6 +1,6 @@
 function [fft_u, fft_psi ] = SQG_large_UQ (model, fft_b)
-% Compute the streamfunction and the velocity from the
-% buoyancy according to usual SQG if a_H = 0 i.e. k_c = inf
+% Compute the streamfunction sqrt{Delta} psi = b
+%and the velocity u_x = ?_y psi, u_y = ?_x psi
 
 
 %% Fourier grid

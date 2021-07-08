@@ -2,6 +2,8 @@ function model = init_grid_k (model)
 % Create a grid in the Fourier space
 %
 
+
+display('toto')
 if any( mod(model.grid.MX,2)~=0)
     error('the number of grid points by axis need to be even');
 end
